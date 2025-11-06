@@ -2,15 +2,18 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
-
+using dotenv.net;
 namespace AppointmentSchedulerProject
 {
     public class MainProgram
     {
-        private const string connectionUri = "mongodb+srv://andrewpujanata_db_user:YXxwfOx7EhKVBUMQ@appointmentcluster.9ohqrbw.mongodb.net/?appName=AppointmentCluster";
+        private static string connectionUri = "";
         
         public static void Main()
         {
+            var envVars = DotEnv.Read();
+            connectionUri = envVars["MONGODB_URI"];
+            Console.Write("ConnectionUri: " + connectionUri);
             Console.WriteLine("Welcome to the Appointment Scheduler!");
             MainMenu();
         }

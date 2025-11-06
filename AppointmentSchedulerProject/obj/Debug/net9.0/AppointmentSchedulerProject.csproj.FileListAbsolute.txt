@@ -22,3 +22,4 @@ C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.pdb
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.genruntimeconfig.cache
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\ref\AppointmentSchedulerProject.dll
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\dotenv.net.dll
