@@ -7,6 +7,8 @@ namespace AppointmentSchedulerProject
 {
     public class MainProgram
     {
+        private const string connectionUri = "mongodb+srv://andrewpujanata_db_user:YXxwfOx7EhKVBUMQ@appointmentcluster.9ohqrbw.mongodb.net/?appName=AppointmentCluster";
+        
         public static void Main()
         {
             Console.WriteLine("Welcome to the Appointment Scheduler!");
@@ -84,8 +86,8 @@ namespace AppointmentSchedulerProject
                     if (index >= allTimezones.Count) break; // don't attempt to access out of bound indexes
                     TimezoneInfo info = allTimezones[index];
                     int choiceNumber = i + 1;
-                    string convertedUTC = info.timezoneOffset >= 0 ? "+" + info.timezoneOffset.ToString() : info.timezoneOffset.ToString();
-                    Console.WriteLine(choiceNumber + ". (UTC " + convertedUTC + ") " + info.timezoneName);
+                    string convertedUTC = info.TimezoneOffset >= 0 ? "+" + info.TimezoneOffset.ToString() : info.TimezoneOffset.ToString();
+                    Console.WriteLine(choiceNumber + ". (UTC " + convertedUTC + ") " + info.TimezoneName);
                 }
 
                 if (currentPage > 0)
@@ -122,18 +124,70 @@ namespace AppointmentSchedulerProject
             } while (choice == -1);
 
             TimezoneInfo selectedTimezone = allTimezones[choice - 1 + (currentPage * timezonesPerPage)];
-            string selectedUTC = selectedTimezone.timezoneOffset >= 0 ? "+" + selectedTimezone.timezoneOffset.ToString() : selectedTimezone.timezoneOffset.ToString();
+            string selectedUTC = selectedTimezone.TimezoneOffset >= 0 ? "+" + selectedTimezone.TimezoneOffset.ToString() : selectedTimezone.TimezoneOffset.ToString();
             Console.WriteLine("Real name: " + realname);
             Console.WriteLine("Username: " + username);
-            Console.WriteLine("Selected timezone: (UTC " + selectedUTC + ") " + selectedTimezone.timezoneName);
-            Console.Write("Press any key to continue. (Function incomplete)");
-            Console.ReadKey();
+            Console.WriteLine("Selected timezone: (UTC " + selectedUTC + ") " + selectedTimezone.TimezoneName);
+            Console.WriteLine("Is this info correct? (Y/N)");
+
+            char finalChoice;
+            do
+            {
+                finalChoice = Console.ReadKey().KeyChar;
+                if (char.IsLower(finalChoice)) finalChoice = char.ToUpper(finalChoice);
+                if (finalChoice == 'Y')
+                {
+                    UploadRegistrationInfo(realname, username, selectedTimezone.TimezoneOffset);
+                }
+                else if (finalChoice == 'N')
+                {
+                    MainMenu();
+                }
+            } while (!(finalChoice == 'Y' || finalChoice == 'N'));
         }
 
+        public static void UploadRegistrationInfo(string? realname, string? username, int selectedTimezoneOffset)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Registering the user...");
+            UserInfo registeredUser = new()
+            {
+                Realname = realname,
+                Username = username,
+                TimezoneOffset = selectedTimezoneOffset
+            };
+            try
+            {
+                MongoClient client = new(connectionUri);
+                IMongoCollection<UserInfo> usersCollection = client.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
+                
+                FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
+                    .Eq(r => r.Username, username);
+
+                UserInfo document = usersCollection.Find(usernameFilter).FirstOrDefault();
+                if(document != null)
+                {
+                    Console.WriteLine("Error: There is already a user with the same username! Returning to main menu...");
+                    MainMenu();
+                    return;
+                }
+
+                usersCollection.InsertOne(registeredUser);
+
+                // Prints the document
+                Console.WriteLine("Registration successful!");
+
+                MainMenu();
+            }
+            catch (MongoException mexp)
+            {
+                Console.WriteLine("Unable to register due to an error: " + mexp);
+                MainMenu();   
+            }
+        }
+        
         public static void DebugDocument()
         {
-            string connectionUri = "mongodb+srv://andrewpujanata_db_user:YXxwfOx7EhKVBUMQ@appointmentcluster.9ohqrbw.mongodb.net/?appName=AppointmentCluster";
-
             var client = new MongoClient(connectionUri);
             var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>("movies");
             var filter = Builders<BsonDocument>.Filter.Eq("title", "Back to the Future");

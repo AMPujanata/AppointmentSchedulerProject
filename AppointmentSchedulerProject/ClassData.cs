@@ -2,8 +2,8 @@ namespace AppointmentSchedulerProject
 {
     public class TimezoneInfo(string name, int offset)
     {
-        public string timezoneName = name;
-        public int timezoneOffset = offset;
+        public string TimezoneName = name;
+        public int TimezoneOffset = offset;
 
         
     };
@@ -13,7 +13,7 @@ namespace AppointmentSchedulerProject
         public static List<TimezoneInfo> GetAllTimezones()
         {
             List<TimezoneInfo> allTimezones = [];
-            
+
             allTimezones.Add(new TimezoneInfo("Hawaii", -10));
             allTimezones.Add(new TimezoneInfo("Alaska", -9));
             allTimezones.Add(new TimezoneInfo("Pacific Time", -8));
@@ -40,5 +40,13 @@ namespace AppointmentSchedulerProject
 
             return allTimezones;
         }
+    }
+
+    public class UserInfo()
+    {
+        public MongoDB.Bson.ObjectId Id; // MongoDB will automatically handle unique IDs
+        public string? Username; // This should always be unique for each user
+        public string? Realname;
+        public int TimezoneOffset;
     }
 }
