@@ -2,29 +2,24 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
-using dotenv.net;
+
 namespace AppointmentSchedulerProject
 {
-    public class MainProgram
+    public class MainMenu
     {
-        private static string connectionUri = "";
         
-        public static void Main()
+        private static void Main()
         {
-            var envVars = DotEnv.Read();
-            connectionUri = envVars["MONGODB_URI"];
-            Console.Write("ConnectionUri: " + connectionUri);
             Console.WriteLine("Welcome to the Appointment Scheduler!");
-            MainMenu();
+            ShowMainMenu();
         }
 
-        public static void MainMenu()
+        public static void ShowMainMenu()
         {
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("1. Login");
             Console.WriteLine("2. Register");
-            Console.WriteLine("3. Debug");
-            Console.WriteLine("4. Exit Program");
+            Console.WriteLine("3. Exit Program");
             Console.WriteLine("Type in the number according to the choice you want to make.");
 
             int choice = -1;
@@ -34,7 +29,7 @@ namespace AppointmentSchedulerProject
                 Console.WriteLine(); // move all other info to a new line
                 if (int.TryParse(keyInfo.KeyChar.ToString(), out int number))
                 {
-                    if (number == 1 || number == 2 || number == 3 || number == 4) // all available choices
+                    if (number == 1 || number == 2 || number == 3) // all available choices
                     {
                         choice = number;
                     }
@@ -49,21 +44,70 @@ namespace AppointmentSchedulerProject
             switch (choice)
             {
                 case 1:
-                    Console.WriteLine("This function is not currently implemented.");
-                    MainMenu();
+                    Login();
                     break;
                 case 2:
                     Register();
                     break;
                 case 3:
-                    DebugDocument();
-                    break;
-                case 4:
                     return;
             }
         }
 
-        public static void Register()
+        private static void Login()
+        {
+            Console.WriteLine("You are now logging in.");
+            Console.Write("Please enter your username: ");
+            string? enteredUsername = Console.ReadLine();
+
+            try
+            {
+                IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
+
+                FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
+                    .Eq(u => u.Username, enteredUsername);
+
+                UserInfo loginUser = usersCollection.Find(usernameFilter).FirstOrDefault();
+                if (loginUser == null)
+                {
+                    Console.WriteLine("Error: No user found with that username!");
+                    RetryLogin();
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Logged in!");
+                    UserMenu.InitializeUserMenu(loginUser);
+                }
+            }
+            catch (MongoException mexp)
+            {
+                Console.WriteLine("Unable to log in due to an error: " + mexp);
+                RetryLogin();
+            }
+        }
+
+        private static void RetryLogin()
+        {
+            Console.WriteLine("Would you like to try logging in again? (Y/N)");
+
+            char retryChoice;
+            do
+            {
+                retryChoice = Console.ReadKey().KeyChar;
+                if (char.IsLower(retryChoice)) retryChoice = char.ToUpper(retryChoice);
+                if (retryChoice == 'Y')
+                {
+                    Login();
+                }
+                else if (retryChoice == 'N')
+                {
+                    ShowMainMenu();
+                }
+            } while (!(retryChoice == 'Y' || retryChoice == 'N'));
+        }
+        
+        private static void Register()
         {
             Console.WriteLine("You are now registering a new user. You will need to provide the following information:");
             Console.WriteLine("a) Your name b) Your username c) Your preferred timezone");
@@ -73,7 +117,7 @@ namespace AppointmentSchedulerProject
             Console.Write("Enter your username: ");
             string? username = Console.ReadLine();
 
-            List<TimezoneInfo> allTimezones = TimezoneGetter.GetAllTimezones();
+            List<TimezoneInfo> allTimezones = TimezoneHelper.GetAllTimezones();
             int timezonesPerPage = 8;
             int totalPages = allTimezones.Count / timezonesPerPage;
             if (allTimezones.Count % timezonesPerPage != 0) totalPages += 1; // if exact amount, it doesnt need additional page, but otherwise it does
@@ -89,8 +133,7 @@ namespace AppointmentSchedulerProject
                     if (index >= allTimezones.Count) break; // don't attempt to access out of bound indexes
                     TimezoneInfo info = allTimezones[index];
                     int choiceNumber = i + 1;
-                    string convertedUTC = info.TimezoneOffset >= 0 ? "+" + info.TimezoneOffset.ToString() : info.TimezoneOffset.ToString();
-                    Console.WriteLine(choiceNumber + ". (UTC " + convertedUTC + ") " + info.TimezoneName);
+                    Console.WriteLine(choiceNumber + ". " + TimezoneHelper.GetReadableTimezoneString(info));
                 }
 
                 if (currentPage > 0)
@@ -127,10 +170,9 @@ namespace AppointmentSchedulerProject
             } while (choice == -1);
 
             TimezoneInfo selectedTimezone = allTimezones[choice - 1 + (currentPage * timezonesPerPage)];
-            string selectedUTC = selectedTimezone.TimezoneOffset >= 0 ? "+" + selectedTimezone.TimezoneOffset.ToString() : selectedTimezone.TimezoneOffset.ToString();
             Console.WriteLine("Real name: " + realname);
             Console.WriteLine("Username: " + username);
-            Console.WriteLine("Selected timezone: (UTC " + selectedUTC + ") " + selectedTimezone.TimezoneName);
+            Console.WriteLine("Selected timezone: " + TimezoneHelper.GetReadableTimezoneString(selectedTimezone));
             Console.WriteLine("Is this info correct? (Y/N)");
 
             char finalChoice;
@@ -144,12 +186,12 @@ namespace AppointmentSchedulerProject
                 }
                 else if (finalChoice == 'N')
                 {
-                    MainMenu();
+                    ShowMainMenu();
                 }
             } while (!(finalChoice == 'Y' || finalChoice == 'N'));
         }
 
-        public static void UploadRegistrationInfo(string? realname, string? username, int selectedTimezoneOffset)
+        private static void UploadRegistrationInfo(string? realname, string? username, int selectedTimezoneOffset)
         {
             Console.WriteLine();
             Console.WriteLine("Registering the user...");
@@ -161,17 +203,16 @@ namespace AppointmentSchedulerProject
             };
             try
             {
-                MongoClient client = new(connectionUri);
-                IMongoCollection<UserInfo> usersCollection = client.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
+                IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
                 
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
-                    .Eq(r => r.Username, username);
+                    .Eq(u => u.Username, username);
 
                 UserInfo document = usersCollection.Find(usernameFilter).FirstOrDefault();
                 if(document != null)
                 {
                     Console.WriteLine("Error: There is already a user with the same username! Returning to main menu...");
-                    MainMenu();
+                    ShowMainMenu();
                     return;
                 }
 
@@ -180,24 +221,13 @@ namespace AppointmentSchedulerProject
                 // Prints the document
                 Console.WriteLine("Registration successful!");
 
-                MainMenu();
+                ShowMainMenu();
             }
             catch (MongoException mexp)
             {
                 Console.WriteLine("Unable to register due to an error: " + mexp);
-                MainMenu();   
+                ShowMainMenu();   
             }
-        }
-        
-        public static void DebugDocument()
-        {
-            var client = new MongoClient(connectionUri);
-            var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>("movies");
-            var filter = Builders<BsonDocument>.Filter.Eq("title", "Back to the Future");
-            var document = collection.Find(filter).First();
-            Console.WriteLine(document.ToJson(new JsonWriterSettings { Indent = true }));
-
-            MainMenu();
         }
     }
 }

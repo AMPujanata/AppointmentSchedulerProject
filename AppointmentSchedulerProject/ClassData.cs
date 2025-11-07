@@ -1,14 +1,28 @@
+using dotenv.net;
+using MongoDB.Driver;
+
 namespace AppointmentSchedulerProject
 {
+    public static class MongoData
+    {
+        public static readonly MongoClient ConnectionClient = new(DotEnv.Read()["MONGODB_URI"]);
+    }
+
+    public class UserInfo()
+    {
+        public MongoDB.Bson.ObjectId Id; // MongoDB will automatically handle unique IDs
+        public string? Username; // This should always be unique for each user
+        public string? Realname;
+        public int TimezoneOffset;
+    }
+    
     public class TimezoneInfo(string name, int offset)
     {
         public string TimezoneName = name;
         public int TimezoneOffset = offset;
-
-        
     };
 
-    public static class TimezoneGetter
+    public static class TimezoneHelper
     {
         public static List<TimezoneInfo> GetAllTimezones()
         {
@@ -40,13 +54,26 @@ namespace AppointmentSchedulerProject
 
             return allTimezones;
         }
-    }
 
-    public class UserInfo()
-    {
-        public MongoDB.Bson.ObjectId Id; // MongoDB will automatically handle unique IDs
-        public string? Username; // This should always be unique for each user
-        public string? Realname;
-        public int TimezoneOffset;
+        public static TimezoneInfo GetTimezoneInfoByOffset(int timezoneOffset)
+        {
+            List<TimezoneInfo> tempList = GetAllTimezones();
+            TimezoneInfo? foundTimezone = tempList.Find(t => t.TimezoneOffset == timezoneOffset);
+            if (foundTimezone == null)
+            {
+                Console.WriteLine("Error finding timezone. Offset does not exist!");
+                return null;
+            }
+            else
+            {
+                return foundTimezone;
+            }
+        }
+        
+        public static string GetReadableTimezoneString(TimezoneInfo info)
+        {
+            string convertedUTC = info.TimezoneOffset >= 0 ? "+" + info.TimezoneOffset.ToString() : info.TimezoneOffset.ToString();
+            return "(UTC " + convertedUTC + ") " + info.TimezoneName;
+        }
     }
 }
