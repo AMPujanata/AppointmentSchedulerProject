@@ -15,6 +15,16 @@ namespace AppointmentSchedulerProject
         public string? Realname;
         public int TimezoneOffset;
     }
+
+    public class AppointmentInfo()
+    {
+        public MongoDB.Bson.ObjectId Id;
+        public string? Title;
+        public string? Creator_Id;
+        public DateTime StartTime;
+        public DateTime EndTime;
+        public List<string> Invited_Users = [];
+    }
     
     public class TimezoneInfo(string name, int offset)
     {
@@ -62,7 +72,7 @@ namespace AppointmentSchedulerProject
             if (foundTimezone == null)
             {
                 Console.WriteLine("Error finding timezone. Offset does not exist!");
-                return null;
+                return null; // should not return null; fix later if there is time
             }
             else
             {
