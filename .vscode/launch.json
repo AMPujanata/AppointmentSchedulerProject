@@ -8,7 +8,7 @@
             "name": "Launch",
             "type" : "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/AppointmentSchedulerProject/bin/Debug/net9.0/AppointmentSchedulerProject.dll",
+            "program": "${workspaceFolder}/AppointmentSchedulerProject/bin/Debug/net9.0/AppointmentScheduler.exe",
             "console": "integratedTerminal"
         }
     ]

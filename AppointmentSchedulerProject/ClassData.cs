@@ -72,7 +72,7 @@ namespace AppointmentSchedulerProject
             if (foundTimezone == null)
             {
                 Console.WriteLine("Error finding timezone. Offset does not exist!");
-                return null; // should not return null; fix later if there is time
+                return new TimezoneInfo("Default", 0); // Ideally this should never get called
             }
             else
             {

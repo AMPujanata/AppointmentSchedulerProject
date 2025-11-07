@@ -10,12 +10,13 @@ namespace AppointmentSchedulerProject
         
         private static void Main()
         {
-            Console.WriteLine("Welcome to the Appointment Scheduler!");
             ShowMainMenu();
         }
 
         public static void ShowMainMenu()
         {
+            Console.Clear();
+            Console.WriteLine("Welcome to the Appointment Scheduler!");
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("1. Login");
             Console.WriteLine("2. Register");
@@ -38,7 +39,6 @@ namespace AppointmentSchedulerProject
                 {
                     Console.WriteLine("Invalid input. Please try again!");
                 }
-                break;
             } while (choice == -1);
 
             switch (choice)
@@ -56,6 +56,7 @@ namespace AppointmentSchedulerProject
 
         private static void Login()
         {
+            Console.Clear();
             Console.WriteLine("You are now logging in.");
             Console.Write("Please enter your username: ");
             string? enteredUsername = Console.ReadLine();
@@ -76,7 +77,6 @@ namespace AppointmentSchedulerProject
                 }
                 else
                 {
-                    Console.WriteLine("Logged in!");
                     UserMenu.InitializeUserMenu(loginUser);
                 }
             }
@@ -89,6 +89,7 @@ namespace AppointmentSchedulerProject
 
         private static void RetryLogin()
         {
+            Console.WriteLine();
             Console.WriteLine("Would you like to try logging in again? (Y/N)");
 
             char retryChoice;
@@ -109,8 +110,8 @@ namespace AppointmentSchedulerProject
         
         private static void Register()
         {
-            Console.WriteLine("You are now registering a new user. You will need to provide the following information:");
-            Console.WriteLine("a) Your name b) Your username c) Your preferred timezone");
+            Console.Clear();
+            Console.WriteLine("You are now registering a new user.");
 
             Console.Write("Enter your real name: ");
             string? realName = Console.ReadLine();
@@ -126,6 +127,7 @@ namespace AppointmentSchedulerProject
             int choice = -1;
             do
             {
+                Console.WriteLine();
                 Console.WriteLine("Choose a timezone by typing its number: ");
                 for (int i = 0; i < timezonesPerPage; i++)
                 {
@@ -212,7 +214,9 @@ namespace AppointmentSchedulerProject
                 UserInfo document = usersCollection.Find(usernameFilter).FirstOrDefault();
                 if(document != null)
                 {
-                    Console.WriteLine("Error: There is already a user with the same username! Returning to main menu...");
+                    Console.WriteLine("Error: There is already a user with the same username!");
+                    Console.WriteLine("Press any key to return to main menu.");
+                    Console.ReadKey(true);
                     ShowMainMenu();
                     return;
                 }
@@ -221,12 +225,15 @@ namespace AppointmentSchedulerProject
 
                 // Prints the document
                 Console.WriteLine("Registration successful!");
-
+                Console.WriteLine("Press any key to return to main menu.");
+                Console.ReadKey(true);
                 ShowMainMenu();
             }
             catch (MongoException mexp)
             {
                 Console.WriteLine("Unable to register due to an error: " + mexp);
+                Console.WriteLine("Press any key to return to main menu.");
+                Console.ReadKey(true);
                 ShowMainMenu();   
             }
         }

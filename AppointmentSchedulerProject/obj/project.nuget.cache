@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "j7HVgMqK1l8=",
+  "dgSpecHash": "vx6DA9Wvy3M=",
   "success": true,
   "projectFilePath": "C:\\containment zone\\AppointmentSchedulerProject\\AppointmentSchedulerProject\\AppointmentSchedulerProject.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Mercury\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\Mercury\\.nuget\\packages\\dotenv.net\\4.0.0\\dotenv.net.4.0.0.nupkg.sha512",
     "C:\\Users\\Mercury\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\2.0.0\\microsoft.extensions.logging.abstractions.2.0.0.nupkg.sha512",
+    "C:\\Users\\Mercury\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.10\\microsoft.net.illink.tasks.9.0.10.nupkg.sha512",
     "C:\\Users\\Mercury\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\Mercury\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
     "C:\\Users\\Mercury\\.nuget\\packages\\mongodb.bson\\3.5.0\\mongodb.bson.3.5.0.nupkg.sha512",

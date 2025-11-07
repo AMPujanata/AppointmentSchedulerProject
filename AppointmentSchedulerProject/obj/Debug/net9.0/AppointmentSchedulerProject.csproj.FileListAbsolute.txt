@@ -1,8 +1,3 @@
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentSchedulerProject.exe
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentSchedulerProject.deps.json
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentSchedulerProject.runtimeconfig.json
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentSchedulerProject.dll
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentSchedulerProject.pdb
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\DnsClient.dll
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\MongoDB.Bson.dll
@@ -17,9 +12,14 @@ C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.csproj.CoreCompileInputs.cache
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.sourcelink.json
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\Appointm.2F9BFE72.Up2Date
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.dll
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\refint\AppointmentSchedulerProject.dll
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.pdb
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentSchedulerProject.genruntimeconfig.cache
-C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\ref\AppointmentSchedulerProject.dll
 C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\dotenv.net.dll
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentScheduler.exe
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentScheduler.deps.json
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentScheduler.runtimeconfig.json
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentScheduler.dll
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\bin\Debug\net9.0\AppointmentScheduler.pdb
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentScheduler.dll
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\refint\AppointmentScheduler.dll
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\AppointmentScheduler.pdb
+C:\containment zone\AppointmentSchedulerProject\AppointmentSchedulerProject\obj\Debug\net9.0\ref\AppointmentScheduler.dll

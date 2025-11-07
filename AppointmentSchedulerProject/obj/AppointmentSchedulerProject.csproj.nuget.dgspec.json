@@ -8,7 +8,7 @@
       "version": "1.0.0",
       "restore": {
         "projectUniqueName": "C:\\containment zone\\AppointmentSchedulerProject\\AppointmentSchedulerProject\\AppointmentSchedulerProject.csproj",
-        "projectName": "AppointmentSchedulerProject",
+        "projectName": "AppointmentScheduler",
         "projectPath": "C:\\containment zone\\AppointmentSchedulerProject\\AppointmentSchedulerProject\\AppointmentSchedulerProject.csproj",
         "packagesPath": "C:\\Users\\Mercury\\.nuget\\packages\\",
         "outputPath": "C:\\containment zone\\AppointmentSchedulerProject\\AppointmentSchedulerProject\\obj\\",
@@ -44,6 +44,12 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.10, )",
+              "autoReferenced": true
+            },
             "MongoDB.Driver": {
               "target": "Package",
               "version": "[3.5.0, )"

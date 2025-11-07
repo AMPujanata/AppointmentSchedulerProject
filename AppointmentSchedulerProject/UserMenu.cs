@@ -4,16 +4,17 @@ namespace AppointmentSchedulerProject
 {
     public class UserMenu
     {
-        private static UserInfo? _currentUser;
+        private static UserInfo _currentUser = new();
         public static void InitializeUserMenu(UserInfo loginUser)
         {
             _currentUser = loginUser;
-            Console.WriteLine("Welcome, " + _currentUser.name);
             ShowUserMenu();
         }
 
         private static void ShowUserMenu()
         {
+            Console.Clear();
+            Console.WriteLine("Welcome, " + _currentUser.name);
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("1. Create an appointment");
             Console.WriteLine("2. View your appointments");
@@ -36,7 +37,6 @@ namespace AppointmentSchedulerProject
                 {
                     Console.WriteLine("Invalid input. Please try again!");
                 }
-                break;
             } while (choice == -1);
 
             switch (choice)
@@ -58,6 +58,7 @@ namespace AppointmentSchedulerProject
 
         private static void CreateAppointment()
         {
+            Console.Clear();
             Console.WriteLine("You are now creating an appointment.");
 
             string? appointmentName = "";
@@ -74,6 +75,7 @@ namespace AppointmentSchedulerProject
                 {
                     Console.WriteLine("Appointment name cannot be empty!");
                 }
+                Console.WriteLine();
             }
             while (string.IsNullOrWhiteSpace(appointmentName));
 
@@ -100,7 +102,7 @@ namespace AppointmentSchedulerProject
                     Console.WriteLine("Successfully added user " + invitedUser.name + " to the appointment!");
                     invitedUsers.Add(invitedUser);
                 }
-
+                Console.WriteLine();
             } while (!string.IsNullOrWhiteSpace(inviteInput));
 
             // calculate available times, per hour, based on invited users
@@ -141,6 +143,7 @@ namespace AppointmentSchedulerProject
                 {
                     Console.WriteLine("The date format was not correct. Try again!");
                 }
+                Console.WriteLine();
             } while (appointmentDate == default); // while appointment date hasn't been set correctly
 
             string? startTimeInput = "";
@@ -154,6 +157,7 @@ namespace AppointmentSchedulerProject
                     Console.WriteLine("The time format was not correct. Try again!");
                     continue;
                 }
+                Console.WriteLine();
             } while (startingTimeOfDay == default);
 
             string? endTimeInput = "";
@@ -167,6 +171,7 @@ namespace AppointmentSchedulerProject
                     Console.WriteLine("The time format was not correct. Try again!");
                     continue;
                 }
+                Console.WriteLine();
             } while (endingTimeOfDay == default);
 
             DateTime startOfAppointmentDateTime = appointmentDate.ToDateTime(startingTimeOfDay);
@@ -176,7 +181,7 @@ namespace AppointmentSchedulerProject
             {
                 if (string.IsNullOrWhiteSpace(allInvitedUsersString)) // don't add comma if it's the first user
                 {
-                    allInvitedUsersString = user.name;
+                    allInvitedUsersString = user.name ?? "";
                 }
                 else
                 {
@@ -202,7 +207,7 @@ namespace AppointmentSchedulerProject
                     List<string> invitedUsernames = [];
                     foreach (UserInfo user in invitedUsers)
                     {
-                        invitedUsernames.Add(user.username);
+                        invitedUsernames.Add(user.username ?? "");
                     }
                     startOfAppointmentDateTime.AddHours(-(_currentUser.timezone_offset)); // convert DateTime to UTC + 0 format first
                     endOfAppointmentDateTime.AddHours(-(_currentUser.timezone_offset));
@@ -239,18 +244,23 @@ namespace AppointmentSchedulerProject
 
                 // Prints the document
                 Console.WriteLine("Appointment successfully created!");
+                Console.WriteLine("Press any key to return to user menu.");
+                Console.ReadKey(true);
 
                 ShowUserMenu();
             }
             catch (MongoException mexp)
             {
                 Console.WriteLine("Unable to create appointment due to an error: " + mexp);
+                Console.WriteLine("Press any key to return to user menu.");
+                Console.ReadKey(true);
                 ShowUserMenu();
             }
         }
 
         private static void ViewAppointments()
         {
+            Console.Clear();
             try
             {
                 IMongoCollection<AppointmentInfo> appointmentsCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<AppointmentInfo>("appointments");
@@ -264,6 +274,8 @@ namespace AppointmentSchedulerProject
                 if (yourAppointments.Count == 0)
                 {
                     Console.WriteLine("You do not currently have any appointments scheduled.");
+                    Console.WriteLine("Press any key to return to user menu.");
+                    Console.ReadKey();
                     ShowUserMenu();
                     return;
                 }
@@ -277,32 +289,35 @@ namespace AppointmentSchedulerProject
                     Console.WriteLine(appointmentNumber + ". " + info.title + ": " + adjustedStartingTime.ToLongDateString() + ", " + adjustedStartingTime.ToShortTimeString() + " - " + adjustedEndingTime.ToShortTimeString());
                 }
                 
-                Console.Write("Press any key to continue.");
+                Console.WriteLine("Press any key to return to user menu.");
                 Console.ReadKey();
                 ShowUserMenu();
             }
             catch (MongoException mexp)
             {
                 Console.WriteLine("Unable to view appointments due to an error: " + mexp);
+                Console.WriteLine("Press any key to return to user menu.");
+                Console.ReadKey(true);
                 ShowUserMenu();
             }
         }
         
         private static void ViewUserData()
         {
+            Console.Clear();
             Console.WriteLine("Your current data: ");
             Console.WriteLine("Real name: " + _currentUser.name);
             Console.WriteLine("Username: " + _currentUser.username);
             TimezoneInfo preferredTimezone = TimezoneHelper.GetTimezoneInfoByOffset(_currentUser.timezone_offset);
             Console.WriteLine("Your current timezone: " + TimezoneHelper.GetReadableTimezoneString(preferredTimezone));
-            Console.WriteLine("Press any key to continue.");
+            Console.WriteLine("Press any key to return to user menu.");
             Console.ReadKey(true);
             ShowUserMenu();
         }
         
         private static void Logout()
         {
-            _currentUser = null; // purge user data since we're not using it anymore
+            _currentUser = new UserInfo(); // purge user data since we're not using it anymore
             MainMenu.ShowMainMenu();
         }
     }
