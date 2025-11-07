@@ -65,7 +65,7 @@ namespace AppointmentSchedulerProject
                 IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
 
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
-                    .Eq(u => u.Username, enteredUsername);
+                    .Eq(u => u.username, enteredUsername);
 
                 UserInfo loginUser = usersCollection.Find(usernameFilter).FirstOrDefault();
                 if (loginUser == null)
@@ -113,9 +113,9 @@ namespace AppointmentSchedulerProject
             Console.WriteLine("a) Your name b) Your username c) Your preferred timezone");
 
             Console.Write("Enter your real name: ");
-            string? realname = Console.ReadLine();
+            string? realName = Console.ReadLine();
             Console.Write("Enter your username: ");
-            string? username = Console.ReadLine();
+            string? newUserName = Console.ReadLine();
 
             List<TimezoneInfo> allTimezones = TimezoneHelper.GetAllTimezones();
             int timezonesPerPage = 8;
@@ -170,8 +170,8 @@ namespace AppointmentSchedulerProject
             } while (choice == -1);
 
             TimezoneInfo selectedTimezone = allTimezones[choice - 1 + (currentPage * timezonesPerPage)];
-            Console.WriteLine("Real name: " + realname);
-            Console.WriteLine("Username: " + username);
+            Console.WriteLine("Real name: " + realName);
+            Console.WriteLine("Username: " + newUserName);
             Console.WriteLine("Selected timezone: " + TimezoneHelper.GetReadableTimezoneString(selectedTimezone));
             Console.WriteLine("Is this info correct? (Y/N)");
 
@@ -182,7 +182,14 @@ namespace AppointmentSchedulerProject
                 if (char.IsLower(finalChoice)) finalChoice = char.ToUpper(finalChoice);
                 if (finalChoice == 'Y')
                 {
-                    UploadRegistrationInfo(realname, username, selectedTimezone.TimezoneOffset);
+                    UserInfo userToRegister = new()
+                    {
+                        name = realName,
+                        username = newUserName,
+                        timezone_offset = selectedTimezone.TimezoneOffset
+                    };
+
+                    UploadRegistrationInfo(userToRegister);
                 }
                 else if (finalChoice == 'N')
                 {
@@ -191,22 +198,16 @@ namespace AppointmentSchedulerProject
             } while (!(finalChoice == 'Y' || finalChoice == 'N'));
         }
 
-        private static void UploadRegistrationInfo(string? realname, string? username, int selectedTimezoneOffset)
+        private static void UploadRegistrationInfo(UserInfo userToRegister)
         {
             Console.WriteLine();
             Console.WriteLine("Registering the user...");
-            UserInfo registeredUser = new()
-            {
-                Realname = realname,
-                Username = username,
-                TimezoneOffset = selectedTimezoneOffset
-            };
             try
             {
                 IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
                 
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
-                    .Eq(u => u.Username, username);
+                    .Eq(u => u.username, userToRegister.username);
 
                 UserInfo document = usersCollection.Find(usernameFilter).FirstOrDefault();
                 if(document != null)
@@ -216,7 +217,7 @@ namespace AppointmentSchedulerProject
                     return;
                 }
 
-                usersCollection.InsertOne(registeredUser);
+                usersCollection.InsertOne(userToRegister);
 
                 // Prints the document
                 Console.WriteLine("Registration successful!");

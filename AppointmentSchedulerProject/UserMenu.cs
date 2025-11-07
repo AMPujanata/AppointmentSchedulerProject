@@ -8,7 +8,7 @@ namespace AppointmentSchedulerProject
         public static void InitializeUserMenu(UserInfo loginUser)
         {
             _currentUser = loginUser;
-            Console.WriteLine("Welcome, " + _currentUser.Realname);
+            Console.WriteLine("Welcome, " + _currentUser.name);
             ShowUserMenu();
         }
 
@@ -45,9 +45,7 @@ namespace AppointmentSchedulerProject
                     CreateAppointment();
                     break;
                 case 2:
-                    // method for viewing appointments
-                    Console.WriteLine("Function not currently supported!");
-                    ShowUserMenu();
+                    ViewAppointments();
                     break;
                 case 3:
                     ViewUserData();
@@ -89,7 +87,7 @@ namespace AppointmentSchedulerProject
 
                 IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
-                    .Eq(u => u.Username, inviteInput);
+                    .Eq(u => u.username, inviteInput);
 
                 UserInfo invitedUser = usersCollection.Find(usernameFilter).FirstOrDefault();
 
@@ -99,33 +97,34 @@ namespace AppointmentSchedulerProject
                 }
                 else
                 {
-                    Console.WriteLine("Successfully added user " + invitedUser.Realname + " to the appointment!");
+                    Console.WriteLine("Successfully added user " + invitedUser.name + " to the appointment!");
                     invitedUsers.Add(invitedUser);
                 }
 
             } while (!string.IsNullOrWhiteSpace(inviteInput));
 
             // calculate available times, per hour, based on invited users
-            int creatorOffset = _currentUser.TimezoneOffset;
+            int creatorOffset = _currentUser.timezone_offset;
 
             TimeOnly creatorStartTime = new(8, 0);
-            TimeOnly creatorEndTime = new (17, 0);
+            TimeOnly creatorEndTime = new(17, 0);
 
             foreach (UserInfo user in invitedUsers)
             {
-                int offsetDifference = creatorOffset - user.TimezoneOffset; // Ex. Creator is +7, invite is +2, -5 diff
+                int offsetDifference = creatorOffset - user.timezone_offset; // Ex. Creator is +8, invite is +1, +7 diff
+                // Which means that invite's 09:00 is Creator's 16:00. Update accordingly
 
                 TimeOnly invitedUserStartTime = creatorStartTime.AddHours(offsetDifference);
                 TimeOnly invitedUserEndTime = creatorEndTime.AddHours(offsetDifference);
 
                 if (creatorStartTime < invitedUserStartTime) creatorStartTime = invitedUserStartTime;
-                if (creatorEndTime > invitedUserEndTime) creatorEndTime = invitedUserEndTime;
+                if ((creatorEndTime > invitedUserEndTime) && (invitedUserEndTime.Hour != 0)) creatorEndTime = invitedUserEndTime; 
+                // TimeOnly treats midnight as 00:00; technically correct, but it should be treated as 24 for the End Time
             }
 
             if (creatorStartTime > creatorEndTime)
             {
-                Console.WriteLine("Error! No available times for this group of users!");
-                Console.ReadKey();
+                Console.WriteLine("Error! No available times for this group of users! Returning to user menu...");
                 ShowUserMenu();
                 return;
             }
@@ -177,14 +176,14 @@ namespace AppointmentSchedulerProject
             {
                 if (string.IsNullOrWhiteSpace(allInvitedUsersString)) // don't add comma if it's the first user
                 {
-                    allInvitedUsersString = user.Realname;
+                    allInvitedUsersString = user.name;
                 }
                 else
                 {
-                    allInvitedUsersString = string.Join(", ", allInvitedUsersString, user.Realname);
+                    allInvitedUsersString = string.Join(", ", allInvitedUsersString, user.name);
                 }
             }
-            
+
             Console.WriteLine("Final appointment details: ");
             Console.WriteLine("Appointment Name: " + appointmentName);
             Console.WriteLine("Appointment Starting Time: " + startOfAppointmentDateTime.ToString());
@@ -203,20 +202,21 @@ namespace AppointmentSchedulerProject
                     List<string> invitedUsernames = [];
                     foreach (UserInfo user in invitedUsers)
                     {
-                        invitedUsernames.Add(user.Username);
+                        invitedUsernames.Add(user.username);
                     }
+                    startOfAppointmentDateTime.AddHours(-(_currentUser.timezone_offset)); // convert DateTime to UTC + 0 format first
+                    endOfAppointmentDateTime.AddHours(-(_currentUser.timezone_offset));
 
                     AppointmentInfo appointmentToUpload = new()
                     {
-                        Title = appointmentName,
-                        Creator_Id = _currentUser.Username,
-                        StartTime = startOfAppointmentDateTime,
-                        EndTime = endOfAppointmentDateTime,
-                        Invited_Users = invitedUsernames
+                        title = appointmentName,
+                        creator_id = _currentUser.username,
+                        start_time = startOfAppointmentDateTime,
+                        end_time = endOfAppointmentDateTime,
+                        invited_users = invitedUsernames
                     };
 
-                    Console.WriteLine("Function unimplemented currently");
-                    ShowUserMenu();
+                    UploadCreatedAppointment(appointmentToUpload);
                     // upload document
                 }
                 else if (finalChoice == 'N')
@@ -225,13 +225,75 @@ namespace AppointmentSchedulerProject
                 }
             } while (!(finalChoice == 'Y' || finalChoice == 'N'));
         }
+
+        private static void UploadCreatedAppointment(AppointmentInfo appointmentToRegister)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Creating an appointment...");
+
+            try
+            {
+                IMongoCollection<AppointmentInfo> appointmentsCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<AppointmentInfo>("appointments");
+
+                appointmentsCollection.InsertOne(appointmentToRegister);
+
+                // Prints the document
+                Console.WriteLine("Appointment successfully created!");
+
+                ShowUserMenu();
+            }
+            catch (MongoException mexp)
+            {
+                Console.WriteLine("Unable to create appointment due to an error: " + mexp);
+                ShowUserMenu();
+            }
+        }
+
+        private static void ViewAppointments()
+        {
+            try
+            {
+                IMongoCollection<AppointmentInfo> appointmentsCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<AppointmentInfo>("appointments");
+                
+                FilterDefinition<AppointmentInfo> appointmentFilter = Builders<AppointmentInfo>.Filter
+                    .Eq(a => a.creator_id, _currentUser.username);
+                appointmentFilter |= Builders<AppointmentInfo>.Filter.AnyEq(a => a.invited_users, _currentUser.username);
+
+                List<AppointmentInfo> yourAppointments = appointmentsCollection.Find(appointmentFilter).ToList();
+
+                if (yourAppointments.Count == 0)
+                {
+                    Console.WriteLine("You do not currently have any appointments scheduled.");
+                    ShowUserMenu();
+                    return;
+                }
+
+                Console.WriteLine("Your current appointments: ");
+                int appointmentNumber = 1;
+                foreach (AppointmentInfo info in yourAppointments)
+                {
+                    DateTime adjustedStartingTime = info.start_time.AddHours(_currentUser.timezone_offset);
+                    DateTime adjustedEndingTime = info.end_time.AddHours(_currentUser.timezone_offset);
+                    Console.WriteLine(appointmentNumber + ". " + info.title + ": " + adjustedStartingTime.ToLongDateString() + ", " + adjustedStartingTime.ToShortTimeString() + " - " + adjustedEndingTime.ToShortTimeString());
+                }
+                
+                Console.Write("Press any key to continue.");
+                Console.ReadKey();
+                ShowUserMenu();
+            }
+            catch (MongoException mexp)
+            {
+                Console.WriteLine("Unable to view appointments due to an error: " + mexp);
+                ShowUserMenu();
+            }
+        }
         
         private static void ViewUserData()
         {
             Console.WriteLine("Your current data: ");
-            Console.WriteLine("Real name: " + _currentUser.Realname);
-            Console.WriteLine("Username: " + _currentUser.Username);
-            TimezoneInfo preferredTimezone = TimezoneHelper.GetTimezoneInfoByOffset(_currentUser.TimezoneOffset);
+            Console.WriteLine("Real name: " + _currentUser.name);
+            Console.WriteLine("Username: " + _currentUser.username);
+            TimezoneInfo preferredTimezone = TimezoneHelper.GetTimezoneInfoByOffset(_currentUser.timezone_offset);
             Console.WriteLine("Your current timezone: " + TimezoneHelper.GetReadableTimezoneString(preferredTimezone));
             Console.WriteLine("Press any key to continue.");
             Console.ReadKey(true);

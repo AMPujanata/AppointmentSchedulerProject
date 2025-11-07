@@ -10,20 +10,20 @@ namespace AppointmentSchedulerProject
 
     public class UserInfo()
     {
-        public MongoDB.Bson.ObjectId Id; // MongoDB will automatically handle unique IDs
-        public string? Username; // This should always be unique for each user
-        public string? Realname;
-        public int TimezoneOffset;
+        public MongoDB.Bson.ObjectId id; // MongoDB will automatically handle unique IDs
+        public string? name;
+        public string? username; // This should always be unique for each user
+        public int timezone_offset;
     }
 
     public class AppointmentInfo()
     {
-        public MongoDB.Bson.ObjectId Id;
-        public string? Title;
-        public string? Creator_Id;
-        public DateTime StartTime;
-        public DateTime EndTime;
-        public List<string> Invited_Users = [];
+        public MongoDB.Bson.ObjectId id;
+        public string? title;
+        public string? creator_id;
+        public DateTime start_time;
+        public DateTime end_time;
+        public List<string> invited_users = [];
     }
     
     public class TimezoneInfo(string name, int offset)
