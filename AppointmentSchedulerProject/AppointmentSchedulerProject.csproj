@@ -9,6 +9,11 @@
     <AssemblyName>AppointmentScheduler</AssemblyName>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+  <DebugSymbols>False</DebugSymbols>
+  <DebugType>None</DebugType>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="3.5.0" />
     <PackageReference Include="dotenv.net" Version="4.0.0" />
