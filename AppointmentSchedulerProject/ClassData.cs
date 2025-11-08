@@ -23,7 +23,7 @@ namespace AppointmentSchedulerProject
         public string? creator_id;
         public DateTime start_time;
         public DateTime end_time;
-        public List<string> invited_users = [];
+        public List<string> invited_users = []; // stores usernames, not real names
     }
     
     public class TimezoneInfo(string name, int offset)
@@ -38,7 +38,7 @@ namespace AppointmentSchedulerProject
         {
             List<TimezoneInfo> allTimezones = [];
 
-            allTimezones.Add(new TimezoneInfo("Hawaii", -10));
+            allTimezones.Add(new TimezoneInfo("Hawaii", -10));  // all timezones need to be declared manually to assign names; otherwise looping with each gmt offset is possible
             allTimezones.Add(new TimezoneInfo("Alaska", -9));
             allTimezones.Add(new TimezoneInfo("Pacific Time", -8));
             allTimezones.Add(new TimezoneInfo("Mountain Time", -7));
@@ -72,7 +72,7 @@ namespace AppointmentSchedulerProject
             if (foundTimezone == null)
             {
                 Console.WriteLine("Error finding timezone. Offset does not exist!");
-                return new TimezoneInfo("Default", 0); // Ideally this should never get called
+                return new TimezoneInfo("Default", 0); // Return a placeholder value that's equivalent to GMT+0 (UTC)
             }
             else
             {
@@ -80,7 +80,7 @@ namespace AppointmentSchedulerProject
             }
         }
         
-        public static string GetReadableTimezoneString(TimezoneInfo info)
+        public static string GetReadableTimezoneString(TimezoneInfo info) // converts timezones to human-readable formats. Ex. (UTC + 7) Jakarta
         {
             string convertedUTC = info.TimezoneOffset >= 0 ? "+" + info.TimezoneOffset.ToString() : info.TimezoneOffset.ToString();
             return "(UTC " + convertedUTC + ") " + info.TimezoneName;

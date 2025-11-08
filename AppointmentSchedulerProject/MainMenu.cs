@@ -1,21 +1,18 @@
-﻿// See https://aka.ms/new-console-template for more information
-using MongoDB.Driver;
-using MongoDB.Bson;
-using MongoDB.Bson.IO;
+﻿using MongoDB.Driver;
 
 namespace AppointmentSchedulerProject
 {
     public class MainMenu
     {
         
-        private static void Main()
+        private static void Main() // this is the function that will be called on application start
         {
             ShowMainMenu();
         }
 
         public static void ShowMainMenu()
         {
-            Console.Clear();
+            Console.Clear(); // all Console.Clear() functions are to keep the console clear without too much junk text
             Console.WriteLine("Welcome to the Appointment Scheduler!");
             Console.WriteLine("What would you like to do?");
             Console.WriteLine("1. Login");
@@ -39,7 +36,7 @@ namespace AppointmentSchedulerProject
                 {
                     Console.WriteLine("Invalid input. Please try again!");
                 }
-            } while (choice == -1);
+            } while (choice == -1); // will only break once a correct choice is chosen
 
             switch (choice)
             {
@@ -68,7 +65,7 @@ namespace AppointmentSchedulerProject
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
                     .Eq(u => u.username, enteredUsername);
 
-                UserInfo loginUser = usersCollection.Find(usernameFilter).FirstOrDefault();
+                UserInfo loginUser = usersCollection.Find(usernameFilter).FirstOrDefault(); // check if username is already registered or not
                 if (loginUser == null)
                 {
                     Console.WriteLine("Error: No user found with that username!");
@@ -96,7 +93,7 @@ namespace AppointmentSchedulerProject
             do
             {
                 retryChoice = Console.ReadKey().KeyChar;
-                if (char.IsLower(retryChoice)) retryChoice = char.ToUpper(retryChoice);
+                if (char.IsLower(retryChoice)) retryChoice = char.ToUpper(retryChoice); // letter inputs should be case insensitive
                 if (retryChoice == 'Y')
                 {
                     Login();
@@ -121,7 +118,7 @@ namespace AppointmentSchedulerProject
             List<TimezoneInfo> allTimezones = TimezoneHelper.GetAllTimezones();
             int timezonesPerPage = 8;
             int totalPages = allTimezones.Count / timezonesPerPage;
-            if (allTimezones.Count % timezonesPerPage != 0) totalPages += 1; // if exact amount, it doesnt need additional page, but otherwise it does
+            if (allTimezones.Count % timezonesPerPage != 0) totalPages += 1; // since the division rounds down, if there are a multiple of 8 timezones (or however many timezones per page), special case
             int currentPage = 0;
 
             int choice = -1;
@@ -184,7 +181,7 @@ namespace AppointmentSchedulerProject
                 if (char.IsLower(finalChoice)) finalChoice = char.ToUpper(finalChoice);
                 if (finalChoice == 'Y')
                 {
-                    UserInfo userToRegister = new()
+                    UserInfo userToRegister = new() // prepare data to send
                     {
                         name = realName,
                         username = newUserName,
@@ -193,7 +190,7 @@ namespace AppointmentSchedulerProject
 
                     UploadRegistrationInfo(userToRegister);
                 }
-                else if (finalChoice == 'N')
+                else if (finalChoice == 'N') // discard all changes and go back to main menu
                 {
                     ShowMainMenu();
                 }
@@ -214,7 +211,7 @@ namespace AppointmentSchedulerProject
                 UserInfo document = usersCollection.Find(usernameFilter).FirstOrDefault();
                 if(document != null)
                 {
-                    Console.WriteLine("Error: There is already a user with the same username!");
+                    Console.WriteLine("Error: There is already a user with the same username!"); // username has to be unique; there can't be two users with the same username
                     Console.WriteLine("Press any key to return to main menu.");
                     Console.ReadKey(true);
                     ShowMainMenu();
@@ -223,7 +220,6 @@ namespace AppointmentSchedulerProject
 
                 usersCollection.InsertOne(userToRegister);
 
-                // Prints the document
                 Console.WriteLine("Registration successful!");
                 Console.WriteLine("Press any key to return to main menu.");
                 Console.ReadKey(true);

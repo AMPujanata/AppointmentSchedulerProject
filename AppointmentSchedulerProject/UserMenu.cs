@@ -7,7 +7,7 @@ namespace AppointmentSchedulerProject
         private static UserInfo _currentUser = new();
         public static void InitializeUserMenu(UserInfo loginUser)
         {
-            _currentUser = loginUser;
+            _currentUser = loginUser; // set user for this current login session
             ShowUserMenu();
         }
 
@@ -73,7 +73,7 @@ namespace AppointmentSchedulerProject
                 appointmentName = Console.ReadLine();
                 if (string.IsNullOrWhiteSpace(appointmentName))
                 {
-                    Console.WriteLine("Appointment name cannot be empty!");
+                    Console.WriteLine("Appointment name cannot be empty!"); // it would be strange to have a blank appointment name, especially when viewing appointments
                 }
                 Console.WriteLine();
             }
@@ -113,8 +113,8 @@ namespace AppointmentSchedulerProject
 
             foreach (UserInfo user in invitedUsers)
             {
-                int offsetDifference = creatorOffset - user.timezone_offset; // Ex. Creator is +8, invite is +1, +7 diff
-                // Which means that invite's 09:00 is Creator's 16:00. Update accordingly
+                int offsetDifference = creatorOffset - user.timezone_offset; // Ex. Creator' timezone is +8, invitee's timezone is +1, +7 diff
+                // Which means that the invitee's 09:00 is Creator's 16:00. Update accordingly
 
                 TimeOnly invitedUserStartTime = creatorStartTime.AddHours(offsetDifference);
                 TimeOnly invitedUserEndTime = creatorEndTime.AddHours(offsetDifference);
@@ -124,7 +124,7 @@ namespace AppointmentSchedulerProject
                 // TimeOnly treats midnight as 00:00; technically correct, but it should be treated as 24 for the End Time
             }
 
-            if (creatorStartTime > creatorEndTime)
+            if (creatorStartTime > creatorEndTime) // no available times for this group of users; cancel operations
             {
                 Console.WriteLine("Error! No available times for this group of users! Returning to user menu...");
                 ShowUserMenu();
@@ -136,7 +136,7 @@ namespace AppointmentSchedulerProject
             string? dateInput = "";
             do
             {
-                Console.Write("Enter the appointment date for your timezone (Example: 12-25-2030): ");
+                Console.Write("Enter the appointment date for your timezone (Example: 12-25-2030): "); // mm-dd-yyyy; could not think of a more user friendly way to write out the required format
                 dateInput = Console.ReadLine();
 
                 if (!DateOnly.TryParse(dateInput, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out appointmentDate))
@@ -149,7 +149,7 @@ namespace AppointmentSchedulerProject
             string? startTimeInput = "";
             do
             {
-                Console.Write("Enter starting time for your timezone (Example: 09:30): ");
+                Console.Write("Enter starting time for your timezone (Example: 09:30): "); // this format is forced, due to overlap in values between HH:mm and mm:ss
                 startTimeInput = Console.ReadLine();
 
                 if (!TimeOnly.TryParseExact(startTimeInput, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out startingTimeOfDay))
@@ -179,7 +179,7 @@ namespace AppointmentSchedulerProject
             string allInvitedUsersString = "";
             foreach (UserInfo user in invitedUsers)
             {
-                if (string.IsNullOrWhiteSpace(allInvitedUsersString)) // don't add comma if it's the first user
+                if (string.IsNullOrWhiteSpace(allInvitedUsersString)) // don't add comma to start of string if it's the first user
                 {
                     allInvitedUsersString = user.name ?? "";
                 }
@@ -222,9 +222,8 @@ namespace AppointmentSchedulerProject
                     };
 
                     UploadCreatedAppointment(appointmentToUpload);
-                    // upload document
                 }
-                else if (finalChoice == 'N')
+                else if (finalChoice == 'N') // cancel appointment creation
                 {
                     ShowUserMenu();
                 }
@@ -242,7 +241,6 @@ namespace AppointmentSchedulerProject
 
                 appointmentsCollection.InsertOne(appointmentToRegister);
 
-                // Prints the document
                 Console.WriteLine("Appointment successfully created!");
                 Console.WriteLine("Press any key to return to user menu.");
                 Console.ReadKey(true);
@@ -284,9 +282,9 @@ namespace AppointmentSchedulerProject
                 int appointmentNumber = 1;
                 foreach (AppointmentInfo info in yourAppointments)
                 {
-                    DateTime adjustedStartingTime = info.start_time.AddHours(_currentUser.timezone_offset);
+                    DateTime adjustedStartingTime = info.start_time.AddHours(_currentUser.timezone_offset); // adjust time to display in the user's preferred timezone
                     DateTime adjustedEndingTime = info.end_time.AddHours(_currentUser.timezone_offset);
-                    Console.WriteLine(appointmentNumber + ". " + info.title + ": " + adjustedStartingTime.ToLongDateString() + ", " + adjustedStartingTime.ToShortTimeString() + " - " + adjustedEndingTime.ToShortTimeString());
+                    Console.WriteLine(appointmentNumber + ". " + info.title + " by " + info.creator_id + ": " + adjustedStartingTime.ToLongDateString() + ", " + adjustedStartingTime.ToShortTimeString() + " - " + adjustedEndingTime.ToShortTimeString());
                 }
                 
                 Console.WriteLine("Press any key to return to user menu.");
