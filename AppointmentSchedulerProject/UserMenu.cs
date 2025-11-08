@@ -64,8 +64,8 @@ namespace AppointmentSchedulerProject
             string? appointmentName = "";
             List<UserInfo> invitedUsers = [];
             DateOnly appointmentDate = new();
-            TimeOnly startingTimeOfDay = new();
-            TimeOnly endingTimeOfDay = new();
+            TimeOnly finalStartingTimeOfDay = new();
+            TimeOnly finalEndingTimeOfDay = new();
 
             do
             {
@@ -87,6 +87,12 @@ namespace AppointmentSchedulerProject
 
                 if (string.IsNullOrWhiteSpace(inviteInput)) continue; // don't run the rest of this if user left it blank
 
+                if (inviteInput == _currentUser.username) // user is already 'invited' to their own appointment
+                {
+                    Console.WriteLine("You are already the creator of the appointment!");
+                    continue;
+                }
+                
                 IMongoCollection<UserInfo> usersCollection = MongoData.ConnectionClient.GetDatabase("appointment_project").GetCollection<UserInfo>("users");
                 FilterDefinition<UserInfo> usernameFilter = Builders<UserInfo>.Filter
                     .Eq(u => u.username, inviteInput);
@@ -108,9 +114,11 @@ namespace AppointmentSchedulerProject
             // calculate available times, per hour, based on invited users
             int creatorOffset = _currentUser.timezone_offset;
 
-            TimeOnly creatorStartTime = new(8, 0);
+            TimeOnly creatorStartTime = new(8, 0); // can be adjusted based on normal working hours
             TimeOnly creatorEndTime = new(17, 0);
 
+            TimeOnly availableStartTime = creatorStartTime;
+            TimeOnly availableEndTime = creatorEndTime;
             foreach (UserInfo user in invitedUsers)
             {
                 int offsetDifference = creatorOffset - user.timezone_offset; // Ex. Creator' timezone is +8, invitee's timezone is +1, +7 diff
@@ -119,19 +127,21 @@ namespace AppointmentSchedulerProject
                 TimeOnly invitedUserStartTime = creatorStartTime.AddHours(offsetDifference);
                 TimeOnly invitedUserEndTime = creatorEndTime.AddHours(offsetDifference);
 
-                if (creatorStartTime < invitedUserStartTime) creatorStartTime = invitedUserStartTime;
-                if ((creatorEndTime > invitedUserEndTime) && (invitedUserEndTime.Hour != 0)) creatorEndTime = invitedUserEndTime; 
+                if (availableStartTime < invitedUserStartTime) availableStartTime = invitedUserStartTime;
+                if ((availableEndTime > invitedUserEndTime) && (invitedUserEndTime.Hour != 0)) availableEndTime = invitedUserEndTime; 
                 // TimeOnly treats midnight as 00:00; technically correct, but it should be treated as 24 for the End Time
             }
 
-            if (creatorStartTime > creatorEndTime) // no available times for this group of users; cancel operations
+            if (availableStartTime > availableEndTime) // no available times for this group of users; cancel operations
             {
-                Console.WriteLine("Error! No available times for this group of users! Returning to user menu...");
+                Console.WriteLine("Error! No available times for this group of users!");
+                Console.WriteLine("Press any key to return to user menu.");
+                Console.ReadKey();
                 ShowUserMenu();
                 return;
             }
 
-            Console.WriteLine("Available time: " + creatorStartTime.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture) + " - " + creatorEndTime.ToString("HH:mm"), System.Globalization.CultureInfo.InvariantCulture);
+            Console.WriteLine("Available time: " + availableStartTime.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture) + " - " + availableEndTime.ToString("HH:mm"), System.Globalization.CultureInfo.InvariantCulture);
 
             string? dateInput = "";
             do
@@ -142,6 +152,13 @@ namespace AppointmentSchedulerProject
                 if (!DateOnly.TryParse(dateInput, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out appointmentDate))
                 {
                     Console.WriteLine("The date format was not correct. Try again!");
+                    continue;
+                }
+                if (appointmentDate < DateOnly.FromDateTime(DateTime.Now))
+                {
+                    Console.WriteLine("You cannot set an appointment date in the past. Please try again!");
+                    appointmentDate = default;
+                    continue;
                 }
                 Console.WriteLine();
             } while (appointmentDate == default); // while appointment date hasn't been set correctly
@@ -152,13 +169,19 @@ namespace AppointmentSchedulerProject
                 Console.Write("Enter starting time for your timezone (Example: 09:30): "); // this format is forced, due to overlap in values between HH:mm and mm:ss
                 startTimeInput = Console.ReadLine();
 
-                if (!TimeOnly.TryParseExact(startTimeInput, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out startingTimeOfDay))
+                if (!TimeOnly.TryParseExact(startTimeInput, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out finalStartingTimeOfDay))
                 {
                     Console.WriteLine("The time format was not correct. Try again!");
                     continue;
                 }
+                if(finalStartingTimeOfDay < availableStartTime || finalStartingTimeOfDay >= availableEndTime)
+                {
+                    Console.WriteLine("Cannot set a starting time that is not within the available hours! Please try again!");
+                    finalStartingTimeOfDay = default;
+                    continue;
+                }
                 Console.WriteLine();
-            } while (startingTimeOfDay == default);
+            } while (finalStartingTimeOfDay == default);
 
             string? endTimeInput = "";
             do
@@ -166,16 +189,28 @@ namespace AppointmentSchedulerProject
                 Console.Write("Enter ending time for your timezone (Example: 11:00): ");
                 endTimeInput = Console.ReadLine();
 
-                if (!TimeOnly.TryParseExact(endTimeInput, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out endingTimeOfDay))
+                if (!TimeOnly.TryParseExact(endTimeInput, "HH:mm", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out finalEndingTimeOfDay))
                 {
                     Console.WriteLine("The time format was not correct. Try again!");
                     continue;
                 }
+                if (finalEndingTimeOfDay <= availableStartTime || finalEndingTimeOfDay > availableEndTime)
+                {
+                    Console.WriteLine("Cannot set an ending time that is not within the available hours! Please try again!");
+                    finalEndingTimeOfDay = default;
+                    continue;
+                }
+                if (finalEndingTimeOfDay <= finalStartingTimeOfDay)
+                {
+                    Console.WriteLine("Cannot set an ending time that is before the starting time! Please try again!");
+                    finalEndingTimeOfDay = default;
+                    continue; 
+                }
                 Console.WriteLine();
-            } while (endingTimeOfDay == default);
+            } while (finalEndingTimeOfDay == default);
 
-            DateTime startOfAppointmentDateTime = appointmentDate.ToDateTime(startingTimeOfDay);
-            DateTime endOfAppointmentDateTime = appointmentDate.ToDateTime(endingTimeOfDay);
+            DateTime startOfAppointmentDateTime = appointmentDate.ToDateTime(finalStartingTimeOfDay);
+            DateTime endOfAppointmentDateTime = appointmentDate.ToDateTime(finalEndingTimeOfDay);
             string allInvitedUsersString = "";
             foreach (UserInfo user in invitedUsers)
             {
